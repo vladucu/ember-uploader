@@ -1,9 +1,8 @@
-import { Promise } from 'rsvp';
-import $ from 'jquery';
-import { assign } from '@ember/polyfills';
-import Evented from '@ember/object/evented';
-import EmberObject, { set, get } from '@ember/object';
-import { run } from '@ember/runloop';
+import { Promise } from "rsvp";
+import $ from "jquery";
+import Evented from "@ember/object/evented";
+import EmberObject, { set, get } from "@ember/object";
+import { run } from "@ember/runloop";
 
 export default EmberObject.extend(Evented, {
   /**
@@ -18,7 +17,7 @@ export default EmberObject.extend(Evented, {
    *
    * @property method
    */
-  method: 'POST',
+  method: "POST",
 
   /**
    * Used to define a namespace for the file param and any extra data params
@@ -33,7 +32,7 @@ export default EmberObject.extend(Evented, {
    *
    * @property paramName
    */
-  paramName: 'file',
+  paramName: "file",
 
   /**
    * Boolean property changed to true upon upload start and false upon upload
@@ -51,12 +50,12 @@ export default EmberObject.extend(Evented, {
    * @return {object} Returns a Ember.RSVP.Promise wrapping the ajax request
    * object
    */
-  upload (files, extra = {}) {
-    const data   = this.createFormData(files, extra);
-    const url    = get(this, 'url');
-    const method = get(this, 'method');
+  upload(files, extra = {}) {
+    const data = this.createFormData(files, extra);
+    const url = get(this, "url");
+    const method = get(this, "method");
 
-    set(this, 'isUploading', true);
+    set(this, "isUploading", true);
 
     return this.ajax(url, data, method);
   },
@@ -69,7 +68,7 @@ export default EmberObject.extend(Evented, {
    * @return {object} Returns a FormData object with the supplied file(s) and
    * extra data
    */
-  createFormData (files, extra = {}) {
+  createFormData(files, extra = {}) {
     const formData = new FormData();
 
     for (const prop in extra) {
@@ -101,10 +100,8 @@ export default EmberObject.extend(Evented, {
    * @param {string} name The param name to namespace
    * @return {string} Returns the namespaced param
    */
-  toNamespacedParam (name) {
-    return this.paramNamespace ?
-      `${this.paramNamespace}[${name}]` :
-      name;
+  toNamespacedParam(name) {
+    return this.paramNamespace ? `${this.paramNamespace}[${name}]` : name;
   },
 
   /**
@@ -113,9 +110,9 @@ export default EmberObject.extend(Evented, {
    * @param {object} data Object of data supplied to the didUpload event
    * @return {object} Returns the given data
    */
-  didUpload (data) {
-    set(this, 'isUploading', false);
-    this.trigger('didUpload', data);
+  didUpload(data) {
+    set(this, "isUploading", false);
+    this.trigger("didUpload", data);
     return data;
   },
 
@@ -127,16 +124,16 @@ export default EmberObject.extend(Evented, {
    * @param {object} errorThrown The error caused
    * @return {object} Returns the jQuery XMLHttpRequest
    */
-  didError (jqXHR, textStatus, errorThrown) {
-    set(this, 'isUploading', false);
+  didError(jqXHR, textStatus, errorThrown) {
+    set(this, "isUploading", false);
 
     // Borrowed from Ember Data
-    const isObject = jqXHR !== null && typeof jqXHR === 'object';
+    const isObject = jqXHR !== null && typeof jqXHR === "object";
 
     if (isObject) {
       jqXHR.then = null;
       if (!jqXHR.errorThrown) {
-        if (typeof errorThrown === 'string') {
+        if (typeof errorThrown === "string") {
           jqXHR.errorThrown = new Error(errorThrown);
         } else {
           jqXHR.errorThrown = errorThrown;
@@ -144,7 +141,7 @@ export default EmberObject.extend(Evented, {
       }
     }
 
-    this.trigger('didError', jqXHR, textStatus, errorThrown);
+    this.trigger("didError", jqXHR, textStatus, errorThrown);
 
     return jqXHR;
   },
@@ -154,17 +151,17 @@ export default EmberObject.extend(Evented, {
    *
    * @param {object} event Event from xhr onprogress
    */
-  didProgress (event) {
-    event.percent = event.loaded / event.total * 100;
-    this.trigger('progress', event);
+  didProgress(event) {
+    event.percent = (event.loaded / event.total) * 100;
+    this.trigger("progress", event);
   },
 
   /**
    * Triggers isAborting event and sets isUploading to false
    */
-  abort () {
-    set(this, 'isUploading', false);
-    this.trigger('isAborting');
+  abort() {
+    set(this, "isUploading", false);
+    this.trigger("isAborting");
   },
 
   /**
@@ -177,8 +174,8 @@ export default EmberObject.extend(Evented, {
    * @return {object} Returns a Ember.RSVP.Promise wrapping the ajax request
    * object
    */
-  ajax (url, data = {}, method = this.method) {
-    const ajaxSettings = assign(
+  ajax(url, data = {}, method = this.method) {
+    const ajaxSettings = Object.assign(
       {},
       {
         contentType: false,
@@ -188,14 +185,14 @@ export default EmberObject.extend(Evented, {
           xhr.upload.onprogress = (event) => {
             this.didProgress(event);
           };
-          this.one('isAborting', () => xhr.abort());
+          this.one("isAborting", () => xhr.abort());
           return xhr;
         },
         url,
         data,
-        method
+        method,
       },
-      get(this, 'ajaxSettings')
+      get(this, "ajaxSettings")
     );
 
     return this.ajaxPromise(ajaxSettings);
@@ -208,7 +205,7 @@ export default EmberObject.extend(Evented, {
    * @param {object} settings The jQuery.ajax compatible settings object
    * @return {object} Returns a Ember.RSVP.Promise wrapping the ajax request
    */
-  ajaxPromise (settings) {
+  ajaxPromise(settings) {
     return new Promise((resolve, reject) => {
       settings.success = (data) => {
         run(null, resolve, this.didUpload(data));
@@ -220,5 +217,5 @@ export default EmberObject.extend(Evented, {
 
       $.ajax(settings);
     });
-  }
+  },
 });
